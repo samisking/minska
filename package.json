@@ -1,6 +1,6 @@
 {
   "name": "minska",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A simple flux like store with reducers and effects",
   "main": "index.js",
   "module": "index.es.js",
