@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`hooks correctly handles \`onAction()\` hook 1`] = `
+Array [
+  "setFoo",
+  "bar",
+  Object {
+    "error": null,
+    "foo": "foo",
+  },
+]
+`;
+
+exports[`hooks correctly handles \`onChange()\` hook 1`] = `
+Array [
+  Object {
+    "error": null,
+    "foo": "foo",
+  },
+  Object {
+    "error": null,
+    "foo": "bar",
+  },
+]
+`;
+
+exports[`hooks correctly handles \`onChange()\` hook 2`] = `
+Array [
+  Object {
+    "error": null,
+    "foo": "bar",
+  },
+  Object {
+    "error": null,
+    "foo": "bar",
+  },
+]
+`;
+
+exports[`hooks correctly handles \`onError()\` hook 1`] = `
+Array [
+  [Error: minska: Can't find reducer or effect with name: causesError.],
+  Object {
+    "error": null,
+    "foo": "foo",
+  },
+]
+`;
+
+exports[`send() correctly updates state using a reducer 1`] = `
+Object {
+  "error": null,
+  "foo": "bar",
+}
+`;
+
+exports[`state sets the correct state 1`] = `
+Object {
+  "bar": "baz",
+}
+`;
+
+exports[`subscriptions allows subscriptions 1`] = `
+Array [
+  Object {
+    "event": "onError",
+    "fn": [Function],
+    "id": 0,
+  },
+  Object {
+    "event": "onAction",
+    "fn": [Function],
+    "id": 1,
+  },
+  Object {
+    "event": "onChange",
+    "fn": [Function],
+    "id": 2,
+  },
+]
+`;
+
+exports[`subscriptions allows unsubscriptions 1`] = `
+Array [
+  Object {
+    "event": "onError",
+    "fn": [Function],
+    "id": "id",
+  },
+]
+`;
+
+exports[`subscriptions allows unsubscriptions 2`] = `Array []`;
+
+exports[`subscriptions notifies subscriptions 1`] = `
+Array [
+  Array [
+    Object {
+      "error": null,
+      "foo": "dude",
+    },
+    Object {
+      "error": null,
+      "foo": "dude",
+    },
+  ],
+]
+`;
+
+exports[`subscriptions throws if subscription event name is invalid 1`] = `"minska: invalidEventName is not a valid event you can subscribe to."`;
+
+exports[`subscriptions throws if subscription event name is invalid 2`] = `
+Object {
+  "error": null,
+  "foo": "foo:bar",
+}
+`;
+
+exports[`subscriptions throws if subscription event name is invalid 3`] = `
+Object {
+  "error": "error text",
+  "foo": "foo",
+}
+`;
+
+exports[`subscriptions throws if unsubscribing with a non-existent sub id 1`] = `"minska: Can't find subscriber with id \\"not-found\\"."`;
