@@ -2,11 +2,14 @@
 
 exports[`store hooks correctly handles \`onAction()\` hook 1`] = `
 Array [
-  "setFoo",
+  "setTitle",
   "bar",
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "foo",
+    "title": "default title",
   },
 ]
 `;
@@ -14,12 +17,18 @@ Array [
 exports[`store hooks correctly handles \`onChange()\` hook 1`] = `
 Array [
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "foo",
+    "title": "bar",
   },
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "bar",
+    "title": "default title",
   },
 ]
 `;
@@ -27,12 +36,18 @@ Array [
 exports[`store hooks correctly handles \`onChange()\` hook 2`] = `
 Array [
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "bar",
+    "title": "default title",
   },
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "bar",
+    "title": "bar",
   },
 ]
 `;
@@ -41,16 +56,48 @@ exports[`store hooks correctly handles \`onError()\` hook 1`] = `
 Array [
   [Error: minska: Can't find reducer or effect with name: causesError.],
   Object {
+    "app": Object {
+      "title": "minska",
+    },
     "error": null,
-    "foo": "foo",
+    "title": "default title",
   },
 ]
 `;
 
 exports[`store send() correctly updates state using a reducer 1`] = `
 Object {
+  "app": Object {
+    "title": "minska is awesome",
+  },
   "error": null,
-  "foo": "bar",
+  "title": "default title",
+}
+`;
+
+exports[`store send() correctly updates state using a reducer 2`] = `
+Object {
+  "app": Object {
+    "title": "minska is awesome",
+  },
+  "bar": Object {
+    "title": "baz",
+  },
+  "error": null,
+  "title": "default title",
+}
+`;
+
+exports[`store send() correctly updates state using a reducer 3`] = `
+Object {
+  "app": Object {
+    "title": "minska is awesome",
+  },
+  "bar": Object {
+    "title": "baz",
+  },
+  "error": null,
+  "title": "omg",
 }
 `;
 
@@ -96,12 +143,18 @@ exports[`store subscriptions notifies subscriptions 1`] = `
 Array [
   Array [
     Object {
+      "app": Object {
+        "title": "minska",
+      },
       "error": null,
-      "foo": "dude",
+      "title": "dude",
     },
     Object {
+      "app": Object {
+        "title": "minska",
+      },
       "error": null,
-      "foo": "dude",
+      "title": "default title",
     },
   ],
 ]
@@ -111,15 +164,31 @@ exports[`store subscriptions throws if subscription event name is invalid 1`] = 
 
 exports[`store subscriptions throws if subscription event name is invalid 2`] = `
 Object {
+  "app": Object {
+    "title": "minska",
+  },
   "error": null,
-  "foo": "foo:bar",
+  "title": "whooh",
 }
 `;
 
 exports[`store subscriptions throws if subscription event name is invalid 3`] = `
 Object {
+  "app": Object {
+    "title": "minska",
+  },
   "error": "error text",
-  "foo": "foo",
+  "title": "default title",
+}
+`;
+
+exports[`store subscriptions throws if subscription event name is invalid 4`] = `
+Object {
+  "app": Object {
+    "title": "oooh minska",
+  },
+  "error": null,
+  "title": "whooh",
 }
 `;
 

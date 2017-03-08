@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`utils formatMsg() formats a message 1`] = `"minska: a formatted message"`;

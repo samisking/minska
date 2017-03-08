@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`combine combines reducers/effects 1`] = `
+Object {
+  "ns:setBar": [Function],
+  "ns:setFoo": [Function],
+  "setFoo": [Function],
+}
+`;

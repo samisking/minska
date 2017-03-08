@@ -1,7 +1,8 @@
+import u from './utils';
+
 // Private properties/methods
 const State = Symbol('state');
 const Emit = Symbol('emit');
-const M = Symbol('m');
 
 class Store {
   constructor({
@@ -12,21 +13,15 @@ class Store {
     onAction = () => {},
     onChange = () => {}
   } = {}) {
-    this[M] = msg => `minska: ${msg}`;
+    // Test all the namespaced reducers are functions
+    if (!u.validateObjHasOnlyFunctions(reducers)) {
+      throw new Error(u.formatMsg('All reducers should be functions.'));
+    }
 
-    // Validate that reducers are all functions
-    Object.keys(reducers).forEach((reducer) => {
-      if (typeof reducers[reducer] !== 'function') {
-        throw new Error(this[M]('All reducers should be functions.'));
-      }
-    });
-
-    // Validate that effects are all functions
-    Object.keys(effects).forEach((effect) => {
-      if (typeof effects[effect] !== 'function') {
-        throw new Error(this[M]('All effects should be functions.'));
-      }
-    });
+    // Test all the namespaced effects are functions
+    if (!u.validateObjHasOnlyFunctions(effects)) {
+      throw new Error(u.formatMsg('All effects should be functions.'));
+    }
 
     // Store model
     this[State] = state;
@@ -64,13 +59,16 @@ class Store {
   // (str, any|!func) => promise|obj
   send(action, data) {
     if (typeof action !== 'string') {
-      const error = new Error(this[M]('Action name must be a string.'));
+      const error = new Error(u.formatMsg('Action name must be a string.'));
       this[Emit]('onError', error, this.state);
       throw error;
     }
 
     if (typeof data === 'function') {
-      const error = new Error(this[M]('Data must be a serializable value. A function was passed.'));
+      const error = new Error(u.formatMsg(
+        'Data must be a serializable value. A function was passed.'
+      ));
+
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -78,13 +76,25 @@ class Store {
     // Emit the `onAction` hook
     this[Emit]('onAction', action, data, this.state);
 
+    // Get the namespace from the action if there is one
+    const ns = action.includes(':') ? action.split(':')[0] : null;
+
+    // Get the slice of state that matches the namespace
+    let stateSlice = this.state;
+
+    if (ns && stateSlice[ns]) {
+      stateSlice = stateSlice[ns];
+    } else if (ns) {
+      stateSlice = {};
+    }
+
     const effect = this.effects[action];
     const reducer = this.reducers[action];
 
     // If no effect or reducer can be found, then throw an error,
     // and also notify the `onError` hook
     if (!effect && !reducer) {
-      const error = new Error(this[M](`Can't find reducer or effect with name: ${action}.`));
+      const error = new Error(u.formatMsg(`Can't find reducer or effect with name: ${action}.`));
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -94,20 +104,27 @@ class Store {
       return Promise.resolve(effect(this.state, data, this.send.bind(this)));
     }
 
-    // Now we must be in a reducer so we set the state to the result of the reducer,
-    // notify any listeners of the new state, and return it so you can get the
-    // result from `send()`
-    const nextState = Object.assign({}, reducer(this.state, data));
-    this.state = nextState;
+    // Get the result of calling the reducer with the state slice
+    const reduced = Object.assign({}, reducer(stateSlice, data));
+
+    // If a namespace is present, then we should add the slice back to the global state
+    const nextState = ns ? Object.assign({}, this.state, { [ns]: reduced }) : reduced;
+
+    // Emit the `onChange` hook
     this[Emit]('onChange', nextState, this.state);
-    return this.state;
+
+    // Actually change the state
+    this.state = nextState;
+
+    // Return the next state so send can use it for something
+    return nextState;
   }
 
   // Add subscriptions for events
   // (str, str|num, fn) => null
   subscribe(event, id, fn) {
     if (!this.events.includes(event)) {
-      const error = new Error(this[M](`${event} is not a valid event you can subscribe to.`));
+      const error = new Error(u.formatMsg(`${event} is not a valid event you can subscribe to.`));
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -119,7 +136,7 @@ class Store {
   // str|num => null
   unsubscribe(id) {
     if (!this.subscriptions.find(s => s.id === id)) {
-      const error = new Error(this[M](`Can't find subscriber with id "${id}".`));
+      const error = new Error(u.formatMsg(`Can't find subscriber with id "${id}".`));
       this[Emit]('onError', error, this.state);
       throw error;
     }

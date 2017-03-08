@@ -1,31 +1,39 @@
-import Store from '../src';
+import { Store } from '../src';
 
 const state = {
-  foo: 'foo',
-  error: null
+  title: 'default title',
+  error: null,
+  app: { title: 'minska' } // a namespaced state slice
 };
 
 const reducers = {
-  setFoo: (storeState, foo) => Object.assign({}, storeState, { foo }),
-  setError: (storeState, error) => Object.assign({}, storeState, { error })
+  // namespaced reducer where a state key exists
+  'app:setTitle': (stateSlice, title) => Object.assign({}, stateSlice, { title }),
+  // namespaced reducer where a state key does not exist
+  'bar:setTitle': (stateSlice, title) => Object.assign({}, stateSlice, { title }),
+  // a non-namespaced reducer that gets global state
+  setTitle: (globalState, title) => Object.assign({}, globalState, { title }),
+  setError: (globalState, error) => Object.assign({}, globalState, { error })
 };
 
 const asyncEffect = data => new Promise((resolve, reject) => {
-  if (data === 'throw error') {
-    return reject('error text');
-  }
-
+  if (data === 'error') return reject('error text');
   return resolve(data);
 });
 
 const effects = {
-  asyncEffect: (currState, data, send) =>
+  asyncSetTitle: (globalState, data, send) =>
     asyncEffect(data)
       .then((newData) => {
-        send('setFoo', `${currState.foo}:${newData}`);
+        send('setTitle', newData);
       })
       .catch((err) => {
         send('setError', err);
+      }),
+  'app:asyncSetTitle': (currState, data, send) =>
+    asyncEffect(data)
+      .then((newData) => {
+        send('app:setTitle', newData);
       })
 };
 
@@ -37,16 +45,6 @@ describe('store', () => {
       expect(store.state).toEqual({});
     });
 
-    it('throws when an effect is not a function', () => {
-      expect(() => new Store({ state, reducers, effects: { r: {} } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: [] } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: false } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: true } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: 'string' } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: NaN } })).toThrow();
-      expect(() => new Store({ state, reducers, effects: { r: 42 } })).toThrow();
-    });
-
     it('throws when an reducer is not a function', () => {
       expect(() => new Store({ state, reducers: { r: {} } })).toThrow();
       expect(() => new Store({ state, reducers: { r: [] } })).toThrow();
@@ -55,6 +53,16 @@ describe('store', () => {
       expect(() => new Store({ state, reducers: { r: 'string' } })).toThrow();
       expect(() => new Store({ state, reducers: { r: NaN } })).toThrow();
       expect(() => new Store({ state, reducers: { r: 42 } })).toThrow();
+    });
+
+    it('throws when an effect is not a function', () => {
+      expect(() => new Store({ state, reducers, effects: { r: {} } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: [] } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: false } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: true } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: 'string' } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: NaN } })).toThrow();
+      expect(() => new Store({ state, reducers, effects: { r: 42 } })).toThrow();
     });
   });
 
@@ -78,7 +86,11 @@ describe('store', () => {
       const store = new Store({ state, reducers });
 
       expect(store.state).toEqual(state);
-      store.send('setFoo', 'bar');
+      store.send('app:setTitle', 'minska is awesome');
+      expect(store.state).toMatchSnapshot();
+      store.send('bar:setTitle', 'baz');
+      expect(store.state).toMatchSnapshot();
+      store.send('setTitle', 'omg');
       expect(store.state).toMatchSnapshot();
     });
 
@@ -86,8 +98,12 @@ describe('store', () => {
       const store = new Store({ state, reducers, effects });
 
       expect(store.state).toEqual(state);
-      store.send('asyncEffect', 'bar').then(() => {
+      store.send('asyncSetTitle', 'whooh').then(() => {
         expect(store.state).toMatchSnapshot();
+
+        store.send('app:asyncSetTitle', 'oooh minska').then(() => {
+          expect(store.state).toMatchSnapshot();
+        });
       });
     });
 
@@ -95,7 +111,7 @@ describe('store', () => {
       const store = new Store({ state, reducers, effects });
 
       expect(store.state).toEqual(state);
-      store.send('asyncEffect', 'throw error').then(() => {
+      store.send('asyncSetTitle', 'error').then(() => {
         expect(store.state).toMatchSnapshot();
       });
     });
@@ -122,7 +138,7 @@ describe('store', () => {
     it('throws when data is a function', () => {
       const store = new Store({ state, reducers });
 
-      expect(() => store.send('setFoo', jest.fn())).toThrow();
+      expect(() => store.send('setTitle', jest.fn())).toThrow();
     });
   });
 
@@ -140,14 +156,14 @@ describe('store', () => {
       const onAction = (...args) => expect(args).toMatchSnapshot();
       const store = new Store({ state, reducers, onAction });
 
-      store.send('setFoo', 'bar');
+      store.send('setTitle', 'bar');
     });
 
     it('correctly handles `onChange()` hook', () => {
       const onChange = (...args) => expect(args).toMatchSnapshot();
       const store = new Store({ state, reducers, onChange });
 
-      store.send('setFoo', 'bar');
+      store.send('setTitle', 'bar');
     });
   });
 
@@ -195,7 +211,7 @@ describe('store', () => {
       const sub = jest.fn();
 
       store.subscribe('onChange', 'id', sub);
-      store.send('setFoo', 'dude');
+      store.send('setTitle', 'dude');
       expect(sub.mock.calls).toMatchSnapshot();
     });
   });
