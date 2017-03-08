@@ -1,8 +1,7 @@
 // Private properties/methods
 const State = Symbol('state');
-const Reducers = Symbol('reducers');
-const Effects = Symbol('effects');
 const Emit = Symbol('emit');
+const M = Symbol('m');
 
 class Store {
   constructor({
@@ -13,26 +12,26 @@ class Store {
     onAction = () => {},
     onChange = () => {}
   } = {}) {
-    this.m = msg => `minska: ${msg}`;
+    this[M] = msg => `minska: ${msg}`;
 
     // Validate that reducers are all functions
     Object.keys(reducers).forEach((reducer) => {
       if (typeof reducers[reducer] !== 'function') {
-        throw new Error(this.m('All reducers should be functions.'));
+        throw new Error(this[M]('All reducers should be functions.'));
       }
     });
 
     // Validate that effects are all functions
     Object.keys(effects).forEach((effect) => {
       if (typeof effects[effect] !== 'function') {
-        throw new Error(this.m('All effects should be functions.'));
+        throw new Error(this[M]('All effects should be functions.'));
       }
     });
 
     // Store model
     this[State] = state;
-    this[Reducers] = reducers;
-    this[Effects] = effects;
+    this.reducers = reducers;
+    this.effects = effects;
 
     // List of subscriptions
     this.subscriptions = [];
@@ -65,13 +64,13 @@ class Store {
   // (str, any|!func) => promise|obj
   send(action, data) {
     if (typeof action !== 'string') {
-      const error = new Error(this.m('Action name must be a string.'));
+      const error = new Error(this[M]('Action name must be a string.'));
       this[Emit]('onError', error, this.state);
       throw error;
     }
 
     if (typeof data === 'function') {
-      const error = new Error(this.m('Data must be a serializable value. A function was passed.'));
+      const error = new Error(this[M]('Data must be a serializable value. A function was passed.'));
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -79,13 +78,13 @@ class Store {
     // Emit the `onAction` hook
     this[Emit]('onAction', action, data, this.state);
 
-    const effect = this[Effects][action];
-    const reducer = this[Reducers][action];
+    const effect = this.effects[action];
+    const reducer = this.reducers[action];
 
     // If no effect or reducer can be found, then throw an error,
     // and also notify the `onError` hook
     if (!effect && !reducer) {
-      const error = new Error(this.m(`Can't find reducer or effect with name: ${action}.`));
+      const error = new Error(this[M](`Can't find reducer or effect with name: ${action}.`));
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -108,7 +107,7 @@ class Store {
   // (str, str|num, fn) => null
   subscribe(event, id, fn) {
     if (!this.events.includes(event)) {
-      const error = new Error(this.m(`${event} is not a valid event you can subscribe to.`));
+      const error = new Error(this[M](`${event} is not a valid event you can subscribe to.`));
       this[Emit]('onError', error, this.state);
       throw error;
     }
@@ -120,7 +119,7 @@ class Store {
   // str|num => null
   unsubscribe(id) {
     if (!this.subscriptions.find(s => s.id === id)) {
-      const error = new Error(this.m(`Can't find subscriber with id "${id}".`));
+      const error = new Error(this[M](`Can't find subscriber with id "${id}".`));
       this[Emit]('onError', error, this.state);
       throw error;
     }
